@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.contrib.sensors.file_sensor import FileSensor
@@ -19,11 +19,12 @@ default_args = {
     'dagToCall': dagToCall,
     'run_file': default_path + 'run.txt',
     'owner': 'AndrewR',
-    'start_date': datetime(2020, 1, 24),
+    'start_date': datetime(2020, 1, 28),
     'catchup': False,
-    'concurrency': 1,
+    'retry_delay': timedelta(seconds=20),
+    'retries': 3,
     'depends_on_past': False,
-    'priority_weight': 100
+    'priority_weight': 100,
 }
 
 path = Variable.get('run_file', default_var=default_args['run_file'])
@@ -31,11 +32,13 @@ ex_file = Variable.get('ex_file', default_var='/Users/arazdolskiy/Development/ai
 
 
 def _print_external_dag_result(**kwargs):
-    results = kwargs['task_instance'].xcom_pull(dag_id=dagToCall, task_ids="query_the_table", key='results', include_prior_dates=True)
+    results = kwargs['task_instance'].xcom_pull(dag_id=dagToCall, task_ids="query_the_table", key='results',
+                                                include_prior_dates=True)
     if results:
         print("Dag='{}' result={}".format(dagToCall, results))
     else:
         print("Cannot load XCOM from dag='{}'".format(dagToCall))
+
 
 def get_external_dag_execution_date(this_dag_scheduled_date):
     print("Master DAG scheduled date={}".format(this_dag_scheduled_date))
@@ -56,7 +59,7 @@ def build_process_result_sub_dag(main_dag, default_args):
     s_dag = DAG(
         dag_id="{}.{}".format(main_dag, 'process_result_sub_dag'),
         default_args=default_args,
-        schedule_interval='@daily'
+        schedule_interval='@hourly'
     )
     with s_dag:
         external_dag_sensor = ExternalTaskSensor(
@@ -95,7 +98,7 @@ def build_process_result_sub_dag(main_dag, default_args):
 main_dag = DAG(
     dag_id=main_dag_id,
     default_args=default_args,
-    schedule_interval='@daily'
+    schedule_interval='@hourly'
 )
 
 with main_dag:

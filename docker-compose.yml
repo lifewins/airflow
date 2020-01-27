@@ -1,0 +1,186 @@
+version: "3"
+
+services:
+  postgres:
+    image: "postgres:9.6"
+    container_name: "postgres"
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+      - TZ=EET
+      - PGTZ=EET
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+#  initdb:
+#    image: "puckel/docker-airflow:1.10.7"
+#    entrypoint: airflow initdb
+#    environment:
+#      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+#      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+#      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+#      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+#      - TZ=EET
+#      - PGTZ=EET
+#    depends_on:
+#      - postgres  
+#    volumes:
+#      - ./dags_working:/usr/local/airflow/dags
+
+  webserver:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./tmp:/usr/local/airflow/tmp
+      - ./logs:/usr/local/airflow/logs
+    ports:
+      - 8800:8080
+    entrypoint: airflow webserver
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+
+  scheduler:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./logs:/usr/local/airflow/logs
+      - ./tmp:/usr/local/airflow/tmp
+    entrypoint: airflow scheduler
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-scheduler.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+
+  redis:
+    image: redis:5.0.5
+    restart: always
+    environment:
+      - TZ=EET
+
+  worker_1:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./logs:/usr/local/airflow/logs
+      - ./tmp:/usr/local/airflow/tmp
+    entrypoint: airflow worker -cn worker_1
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+
+  worker_2:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./tmp:/usr/local/airflow/tmp
+      - ./logs:/usr/local/airflow/logs
+    entrypoint: airflow worker -cn worker_2
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+
+
+  worker_3:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./tmp:/usr/local/airflow/tmp
+      - ./logs:/usr/local/airflow/logs
+    entrypoint: airflow worker -cn worker_3
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+
+  flower:
+    image: "puckel/docker-airflow:1.10.7"
+    restart: always
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__FERNET_KEY='81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs='
+      - TZ=EET
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - 5555:5555
+    volumes:
+      - ./dags_working:/usr/local/airflow/dags
+      - ./plugins:/usr/local/airflow/plugins
+      - ./tmp:/usr/local/airflow/tmp
+      - ./logs:/usr/local/airflow/logs
+    entrypoint: airflow flower
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-flower.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3

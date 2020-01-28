@@ -23,7 +23,7 @@ class PostgreSQLCountRowsOperator(BaseOperator):
                 context["task_instance"].xcom_push(key=self.context_key, value=result[0])
                 log.info("saved in context result={}", format(result))
             else:
-                raise ValueError("Cannot get value using sql={}".format(result))
+                raise ValueError("Cannot get value using sql={}".format(self.sql))
 
 
 # Defining the plugin class

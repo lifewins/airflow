@@ -1,5 +1,5 @@
-import uuid
 import logging
+import uuid
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -15,14 +15,13 @@ ex_file = Variable.get('ex_file', default_var='/Users/arazdolskiy/Development/ai
 
 log = logging.getLogger(__name__)
 
-
 default_args = {
     'owner': 'AndrewR',
     'start_date': datetime(2020, 1, 24),
     'database': "jdbc:pgsql/localhost:4567",
     'email_on_retry': False,
     'email_on_failure': False,
-    'retries': 1,
+    'retries': 3,
     'retry_delay': timedelta(minutes=1),
     'catchup': False,
     'priority_weight': 150,
@@ -95,7 +94,7 @@ def query_the_table_create_ts_file(select_sql, **kwargs):
     # hook = PostgresHook()
     # count = hook.get_first(select_sql)
     # task_instance.xcom_push(key="results", value=count[0])
-    #print("Records count=" + str(count[0]))
+    # print("Records count=" + str(count[0]))
 
 
 def createDag(dagId, config, default_args):
@@ -103,7 +102,8 @@ def createDag(dagId, config, default_args):
     dag = DAG(dag_id=dag_ID,
               default_args=default_args,
               start_date=config[dagId]["start_date"],
-              schedule_interval=config[dagId]["schedule_interval"])
+              schedule_interval=config[dagId]["schedule_interval"]
+              )
 
     with dag:
         say_hello = PythonOperator(

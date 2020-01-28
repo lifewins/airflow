@@ -11,7 +11,7 @@ from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
 dagToCall = Variable.get("dagToCall", default_var='dag_andrewR_m_1_table_task_1')
 
-main_dag_id = "calling_dag"
+main_dag_id: str = "calling_dag"
 
 default_path = Variable.get("output_path", default_var='/Users/arazdolskiy/Development/airflow/tmp/')
 
@@ -23,8 +23,7 @@ default_args = {
     'catchup': False,
     'retry_delay': timedelta(seconds=20),
     'retries': 3,
-    'depends_on_past': False,
-    'priority_weight': 100,
+    'depends_on_past': False
 }
 
 path = Variable.get('run_file', default_var=default_args['run_file'])
@@ -98,7 +97,8 @@ def build_process_result_sub_dag(main_dag, default_args):
 main_dag = DAG(
     dag_id=main_dag_id,
     default_args=default_args,
-    schedule_interval='@hourly'
+    schedule_interval='@hourly',
+    max_active_runs=1
 )
 
 with main_dag:
